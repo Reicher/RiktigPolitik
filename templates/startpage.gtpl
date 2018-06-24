@@ -14,7 +14,7 @@
       <p>Riktig Politik försöker sammanställa hur de olika ledmoten röstat (eller inte röstat) på olika förslag. Framtida ideer :</p>
 
       <ul>
-        <li>Vilket partis ledmot röstar oftast mot partilinjen?</li>xs
+        <li>Vilket partis ledmot röstar oftast mot partilinjen?</li>
         <li>Vilka ledarmot röstar mest och minst? Finns det trender inom partier?</li>
 	<li>Ge alla ledamot poäng efter hur många motioner och röstninxmgar de deltagit i.</li>
       </ul>
