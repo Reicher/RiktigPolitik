@@ -11,12 +11,21 @@ import (
 	"time"
 )
 
-type voteringsLista struct {
-	Antal string `json:"@antal"`
+type voting struct {
+	Id string `json:"votering_id"`
+	Yes string `json:"Ja"`
+	No string `json:"Nej"`
+	NotAvailable string `json:"Frånvarande"`
+	Abstain string `json:"Avstår"`
 }
 
-type voteringsSvar struct {
-	Lista voteringsLista `json:"voteringlista"`
+type votingsList struct {
+	Number string `json:"@antal"`
+	Votering []voting `json:"votering"`
+}
+
+type votingsResponse struct {
+	VotingsList votingsList `json:"voteringlista"`
 }
 
 func doStartupDebug(r *http.Request) {
@@ -35,8 +44,8 @@ func doStartupDebug(r *http.Request) {
 	}
 }
 
-// Hämta Votering
-func requestVotering(year string) string {
+// Get Votings
+func requestVoting(year string) {
 	url := "http://data.riksdagen.se/voteringlista/?"
 	url += "rm=" + year + "%2F18&"
 	url += "bet=&punkt=&valkrets=&rost=&iid=&"
@@ -44,11 +53,9 @@ func requestVotering(year string) string {
 	url += "utformat=json&"
 	url += "gruppering=votering_id"
 
-	fmt.Println("Requesting votering from :\n" + url)
+	fmt.Println("Requesting voting from :\n" + url)
 
-	//textBytes, _ := ioutil.ReadFile("assets/fakevotering.txt")
-
-	//
+	// Adds a 2 seconds timeout the request futher down
 	voteClient := http.Client{
 		Timeout: time.Second * 2, // Maximum of 2 secs
 	}
@@ -63,7 +70,6 @@ func requestVotering(year string) string {
 	req.Header.Set("User-Agent", "Riktig-politik")
 
 	// Send the request with the help of voteClient
-	// Will wait for 2 seconds
 	res, getErr := voteClient.Do(req)
 	if getErr != nil {
 		log.Fatal(getErr)
@@ -77,15 +83,13 @@ func requestVotering(year string) string {
 		log.Fatal(readErr)
 	}
 
-	voteringsSvar1 := voteringsSvar{}
-	jsonErr := json.Unmarshal(body, &voteringsSvar1)
+	votingsResponse1 := votingsResponse{}
+	jsonErr := json.Unmarshal(body, &votingsResponse1)
 	if jsonErr != nil {
 		log.Fatal(jsonErr)
 	}
 
-	fmt.Printf("Antal: " + voteringsSvar1.Lista.Antal)
-
-	return "\nKLAR!"
+	fmt.Printf("Antal: " + votingsResponse1.VotingsList.Number)
 }
 
 func startpage(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +107,9 @@ func startpage(w http.ResponseWriter, r *http.Request) {
 func main() {
 	fmt.Println("localhost:9090")
 
-	fmt.Println(requestVotering("2017"))
+	// Note that the polical year start in fall.
+	// 2017 is really fall 2017 - fall 2018x
+	requestVoting("2017")
 
 	http.HandleFunc("/", startpage) // setting router rule
 	err := http.ListenAndServe(":9090", nil) // setting listening port
