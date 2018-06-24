@@ -26,6 +26,12 @@ func doStartupDebug(r *http.Request) {
 }
 
 
+func about(w http.ResponseWriter, r *http.Request) {
+}
+
+func news(w http.ResponseWriter, r *http.Request) {
+}
+
 func startpage(w http.ResponseWriter, r *http.Request) {
 
 	//doStartupDebug(r)
@@ -45,9 +51,11 @@ func main() {
 	// 2017 is really fall 2017 - fall 2018x
 	votingSession := votings.Request("2017")
 
-	fmt.Printf(votingSession[3].Id)
+	// fmt.Printf(votingSession[3].Id)
 
 	http.HandleFunc("/", startpage) // setting router rule
+	http.HandleFunc("/news", news)
+	http.HandleFunc("/about", about)
 	err := http.ListenAndServe(":9090", nil) // setting listening port
 
 	if err != nil {
