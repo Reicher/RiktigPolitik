@@ -6,27 +6,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"io/ioutil"
-	"encoding/json"
-	"time"
+	"github.com/reicher/RiktigPolitik/votings"
 )
-
-type voting struct {
-	Id string `json:"votering_id"`
-	Yes string `json:"Ja"`
-	No string `json:"Nej"`
-	NotAvailable string `json:"Frånvarande"`
-	Abstain string `json:"Avstår"`
-}
-
-type votingsList struct {
-	Number string `json:"@antal"`
-	Votering []voting `json:"votering"`
-}
-
-type votingsResponse struct {
-	VotingsList votingsList `json:"voteringlista"`
-}
 
 func doStartupDebug(r *http.Request) {
 
@@ -44,53 +25,6 @@ func doStartupDebug(r *http.Request) {
 	}
 }
 
-// Get Votings
-func requestVoting(year string) {
-	url := "http://data.riksdagen.se/voteringlista/?"
-	url += "rm=" + year + "%2F18&"
-	url += "bet=&punkt=&valkrets=&rost=&iid=&"
-	url += "sz=2000&"
-	url += "utformat=json&"
-	url += "gruppering=votering_id"
-
-	fmt.Println("Requesting voting from :\n" + url)
-
-	// Adds a 2 seconds timeout the request futher down
-	voteClient := http.Client{
-		Timeout: time.Second * 2, // Maximum of 2 secs
-	}
-
-	// Send request
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Be nice and say who you are
-	req.Header.Set("User-Agent", "Riktig-politik")
-
-	// Send the request with the help of voteClient
-	res, getErr := voteClient.Do(req)
-	if getErr != nil {
-		log.Fatal(getErr)
-	}
-
-	fmt.Printf("HTTP: %s\n", res.Status)
-
-	// Get response body
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatal(readErr)
-	}
-
-	votingsResponse1 := votingsResponse{}
-	jsonErr := json.Unmarshal(body, &votingsResponse1)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-
-	fmt.Printf("Antal: " + votingsResponse1.VotingsList.Number)
-}
 
 func startpage(w http.ResponseWriter, r *http.Request) {
 
@@ -109,7 +43,9 @@ func main() {
 
 	// Note that the polical year start in fall.
 	// 2017 is really fall 2017 - fall 2018x
-	requestVoting("2017")
+	votingSession := votings.Request("2017")
+
+	fmt.Printf(votingSession[3].Id)
 
 	http.HandleFunc("/", startpage) // setting router rule
 	err := http.ListenAndServe(":9090", nil) // setting listening port
