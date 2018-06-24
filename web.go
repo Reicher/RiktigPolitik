@@ -8,8 +8,16 @@ import (
 	"strings"
 	"io/ioutil"
 	"encoding/json"
+	"time"
 )
 
+type voteringsLista struct {
+	Antal string `json:"@antal"`
+}
+
+type voteringsSvar struct {
+	Lista voteringsLista `json:"voteringlista"`
+}
 
 func doStartupDebug(r *http.Request) {
 
@@ -27,30 +35,57 @@ func doStartupDebug(r *http.Request) {
 	}
 }
 
-type voteringslista struct {
-	Number int `json:"number"`
-}
-
 // Hämta Votering
 func requestVotering(year string) string {
-	// url := "http://data.riksdagen.se/voteringlista/?"
-	// url += "rm=" + year + "%2F18&"
-	// url += "bet=&punkt=&valkrets=&rost=&iid=&"
-	// url += "sz=2000&"
-	// url += "utformat=xml&"
-	// url += "gruppering=votering_id"
+	url := "http://data.riksdagen.se/voteringlista/?"
+	url += "rm=" + year + "%2F18&"
+	url += "bet=&punkt=&valkrets=&rost=&iid=&"
+	url += "sz=2000&"
+	url += "utformat=json&"
+	url += "gruppering=votering_id"
 
-	textBytes, _ := ioutil.ReadFile("assets/fakevotering.txt")
-	fmt.Println(string(textBytes))
-	voteringslista1 := voteringslista{}
+	fmt.Println("Requesting votering from :\n" + url)
 
-	err := json.Unmarshal(textBytes, &voteringslista1)
-	if err != nil {
-		fmt.Println(err)
-		return ""
+	//textBytes, _ := ioutil.ReadFile("assets/fakevotering.txt")
+
+	//
+	voteClient := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
 	}
 
-	return string(voteringslista1.Number)
+	// Send request
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Be nice and say who you are
+	req.Header.Set("User-Agent", "Riktig-politik")
+
+	// Send the request with the help of voteClient
+	// Will wait for 2 seconds
+	res, getErr := voteClient.Do(req)
+	if getErr != nil {
+		log.Fatal(getErr)
+	}
+
+	fmt.Printf("HTTP: %s\n", res.Status)
+
+	// Get response body
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		log.Fatal(readErr)
+	}
+
+	voteringsSvar1 := voteringsSvar{}
+	jsonErr := json.Unmarshal(body, &voteringsSvar1)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
+	}
+
+	fmt.Printf("Antal: " + voteringsSvar1.Lista.Antal)
+
+	return "\nKLAR!"
 }
 
 func startpage(w http.ResponseWriter, r *http.Request) {
