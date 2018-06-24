@@ -49,7 +49,7 @@ func main() {
 
 	// Note that the polical year start in fall.
 	// 2017 is really fall 2017 - fall 2018x
-	votingSession := votings.Request("2017")
+	votings.Request("2017")
 
 	// fmt.Printf(votingSession[3].Id)
 
