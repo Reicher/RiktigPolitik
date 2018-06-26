@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
+	"google.golang.org/appengine"
 	"github.com/reicher/RiktigPolitik/votings"
 )
 
@@ -61,4 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+
+	// For google cloud engine
+	appengine.Main()
 }
