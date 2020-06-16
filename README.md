@@ -1,2 +1,2 @@
 # RiktigPolitik
-Samanställningar av riksdagens voteringar
+Politiska sammanställningar, twitterbotar och annat gott. 

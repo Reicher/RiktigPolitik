@@ -1,0 +1,3 @@
+[submodule "RiksdagenPythonAPI"]
+	path = RiksdagenPythonAPI
+	url = https://github.com/Reicher/RiksdagenPythonAPI.git
