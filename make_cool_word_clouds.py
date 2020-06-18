@@ -1,8 +1,6 @@
 from typing import Dict
 
 import numpy as np
-import pandas as pd
-from os import path
 from PIL import Image
 import random
 import re
@@ -21,7 +19,7 @@ def transform_format(val):
     else:
         return val
 
-def do_cloud(text: str, parti: riksdagen.Parti):
+def do_cloud(id: int, text: str, parti: riksdagen.Parti):
 
     mask_filename = f'{parti.name}.png'
     mask = np.array(Image.open(f'mask/{mask_filename}'))
@@ -35,9 +33,9 @@ def do_cloud(text: str, parti: riksdagen.Parti):
     plt.figure()
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
-    plt.show()
+    #plt.show()
 
-    filename = f'{parti.name}_wordcloud.png'
+    filename = f'{parti.name}_wordcloud_{id}.png'
     wordcloud.to_file(f'pics/{filename}')
 
 
@@ -110,10 +108,15 @@ def create_fake_text(relative_usage: Dict[str, float], length):
     return big_string
 
 
-parti = riksdagen.Parti.SD
+
 
 api = riksdagen.API()
 relative_usage = prepare(api, 500)
-print_party_common_words(relative_usage[parti], 15)
-full_text = create_fake_text(relative_usage[parti], 50)
-do_cloud(full_text, parti)
+
+# parti = riksdagen.Parti.M
+# print_party_common_words(relative_usage[parti], 15)
+
+for parti in riksdagen.Parti:
+    full_text = create_fake_text(relative_usage[parti], 70)
+    for i in range(5):
+        do_cloud(i, full_text, parti)
