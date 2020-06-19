@@ -27,4 +27,4 @@ mycket oftare partiet använder ordet i förhållande till övriga riksdagsparti
  * Tweeka text storklek och mängd ord
  * Lägg till "Källa: Sveriges riksdag"
  * Lägg till signering / "Bearbetning av"
- * Moooaaar data
+ * Använda HELA anförande-texten istället för bara rubrik. 
