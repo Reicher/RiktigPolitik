@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import random
 import re
+import logging
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
 import matplotlib.pyplot as plt
@@ -13,13 +14,15 @@ import sys
 sys.path.append('RiksdagenPythonAPI/')
 import riksdagen
 
+
 def transform_format(val):
     if val == 0:
         return 255
     else:
         return val
 
-def do_cloud(id: int, text: str, parti: riksdagen.Parti):
+
+def do_cloud(id: int, text: str, parti: riksdagen.Parti, debug=True):
 
     mask_filename = f'{parti.name}.png'
     mask = np.array(Image.open(f'mask/{mask_filename}'))
@@ -30,13 +33,18 @@ def do_cloud(id: int, text: str, parti: riksdagen.Parti):
         transformed_mask[i] = list(map(transform_format, mask[i]))
 
     wordcloud = WordCloud(max_font_size=30, background_color="white", mask=transformed_mask).generate(text)
-    plt.figure()
-    plt.imshow(wordcloud, interpolation="bilinear")
-    plt.axis("off")
-    #plt.show()
 
-    filename = f'{parti.name}_wordcloud_{id}.png'
-    wordcloud.to_file(f'pics/{filename}')
+    if debug:
+        plt.figure()
+        plt.imshow(wordcloud, interpolation="bilinear")
+        plt.axis("off")
+        logging.info(f'Showed plot.')
+        plt.show()
+    else:
+        filename = f'{parti.name}_wordcloud_{id}.png'
+        wordcloud.to_file(f'pics/draft/{filename}')
+        logging.info(f'Saved file {filename}')
+
 
 
 def get_party_words(api, parti: riksdagen.Parti, size: int):
@@ -52,11 +60,11 @@ def get_party_words(api, parti: riksdagen.Parti, size: int):
     return word_sum
 
 def prepare(api, size):
-    full_text = {}
+    text = {}
     usage: Dict[riksdagen.Parti, Dict[str, float]] = {}
     for p in riksdagen.Parti:
-        full_text = get_party_words(api, p, size)
-        words = [w.lower() for w in full_text.split(' ')]
+        text = get_party_words(api, p, size)
+        words = [w.lower() for w in text.split(' ')]
         usage[p] = {}
         for word in words:
             if word in usage[p]:
@@ -111,12 +119,15 @@ def create_fake_text(relative_usage: Dict[str, float], length):
 
 
 api = riksdagen.API()
-relative_usage = prepare(api, 500)
+relative_usage = prepare(api, 75)
 
 # parti = riksdagen.Parti.M
 # print_party_common_words(relative_usage[parti], 15)
 
-for parti in riksdagen.Parti:
+for parti in [riksdagen.Parti.S]:# riksdagen.Parti:
+    clouds = 1
+    logging.info(f'Creating {clouds} clouds for {parti}.')
     full_text = create_fake_text(relative_usage[parti], 70)
-    for i in range(5):
-        do_cloud(i, full_text, parti)
+    print_party_common_words(relative_usage[parti], 10)
+    for i in range(clouds):
+        do_cloud(i, full_text, parti, debug=True)
