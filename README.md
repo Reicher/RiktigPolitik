@@ -22,9 +22,6 @@ mycket oftare partiet använder ordet i förhållande till övriga riksdagsparti
 
 ![Word clouds](pics/best/S_wordcloud.png)
  ### Todo
- * Matchande färgschema som partifärg
- * Fullständigt partinamn under
+ * Matchande färgschema som partifärg (Kanske?)
  * Tweeka text storklek och mängd ord
- * Lägg till "Källa: Sveriges riksdag"
- * Lägg till signering / "Bearbetning av"
  * Använda HELA anförande-texten istället för bara rubrik. 
