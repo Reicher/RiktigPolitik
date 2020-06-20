@@ -4,3 +4,4 @@ matplotlib
 pillow
 wordcloud
 alpha=0.25
+libraqm

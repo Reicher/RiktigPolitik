@@ -1,14 +1,12 @@
 from typing import Dict
+from wordcloud import WordCloud
+from PIL import Image, ImageDraw, ImageFont
 
 import numpy as np
-from PIL import Image
 import random
 import re
 import logging
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-
 import matplotlib.pyplot as plt
-
 import sys
 
 sys.path.append('RiksdagenPythonAPI/')
@@ -44,6 +42,43 @@ def do_cloud(id: int, text: str, parti: riksdagen.Parti, debug=True):
         filename = f'{parti.name}_wordcloud_{id}.png'
         wordcloud.to_file(f'pics/draft/{filename}')
         logging.info(f'Saved file {filename}')
+
+        # post processing
+
+        # create Image object with the input image
+        image = Image.open(f'pics/draft/{filename}')
+        w, h = image.size
+
+        # initialise the drawing context with
+        # the image object as background
+        draw = ImageDraw.Draw(image)
+
+        # create font object with the font file and specify
+        # desired size
+        # font = ImageFont.truetype('fonts/Roboto-Italic.ttf', size=17)
+
+        color = 'rgb(0, 0, 0)'  # black color
+
+        # Partiname
+        font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 40)
+        source = f'{parti.name}'
+        text_w, text_h = draw.textsize(source, font)
+        draw.text(((w - text_w)/2, 50), source, color, font=font)
+
+        font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 20)
+
+        # Fotnötter
+        source = "Källa: Sveriges riksdag"
+        text_w, text_h = draw.textsize(source, font)
+        draw.text(((w - text_w), (h - text_h*2)), source, color, font=font)
+
+        source = "Bearbetning: reicher@github"
+        text_w, text_h = draw.textsize(source, font)
+        draw.text(((w - text_w), (h - text_h)), source, color, font=font)
+
+
+        # save the edited image
+        image.save(f'pics/draft/processed/{filename}')
 
 
 
@@ -116,18 +151,16 @@ def create_fake_text(relative_usage: Dict[str, float], length):
     return big_string
 
 
-
-
 api = riksdagen.API()
-relative_usage = prepare(api, 75)
+relative_usage = prepare(api, 50)
 
 # parti = riksdagen.Parti.M
 # print_party_common_words(relative_usage[parti], 15)
 
-for parti in [riksdagen.Parti.S]:# riksdagen.Parti:
+for parti in [riksdagen.Parti.V]: # riksdagen.Parti:
     clouds = 1
     logging.info(f'Creating {clouds} clouds for {parti}.')
     full_text = create_fake_text(relative_usage[parti], 70)
     print_party_common_words(relative_usage[parti], 10)
     for i in range(clouds):
-        do_cloud(i, full_text, parti, debug=True)
+        do_cloud(i, full_text, parti, debug=False)
