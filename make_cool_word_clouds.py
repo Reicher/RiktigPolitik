@@ -43,43 +43,45 @@ def do_cloud(id: int, text: str, parti: riksdagen.Parti, debug=True):
         wordcloud.to_file(f'pics/draft/{filename}')
         logging.info(f'Saved file {filename}')
 
-        # post processing
-
-        # create Image object with the input image
-        image = Image.open(f'pics/draft/{filename}')
-        w, h = image.size
-
-        # initialise the drawing context with
-        # the image object as background
-        draw = ImageDraw.Draw(image)
-
-        # create font object with the font file and specify
-        # desired size
-        # font = ImageFont.truetype('fonts/Roboto-Italic.ttf', size=17)
-
-        color = 'rgb(0, 0, 0)'  # black color
-
-        # Partiname
-        font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 40)
-        source = f'{parti.name}'
-        text_w, text_h = draw.textsize(source, font)
-        draw.text(((w - text_w)/2, 50), source, color, font=font)
-
-        font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 20)
-
-        # Fotnötter
-        source = "Källa: Sveriges riksdag"
-        text_w, text_h = draw.textsize(source, font)
-        draw.text(((w - text_w), (h - text_h*2)), source, color, font=font)
-
-        source = "Bearbetning: reicher@github"
-        text_w, text_h = draw.textsize(source, font)
-        draw.text(((w - text_w), (h - text_h)), source, color, font=font)
+        add_text_information(parti, filename)
 
 
-        # save the edited image
-        image.save(f'pics/draft/processed/{filename}')
+def add_text_information(parti: riksdagen.Parti, filename: str):
+    # post processing
 
+    # create Image object with the input image
+    image = Image.open(f'pics/draft/{filename}')
+    w, h = image.size
+
+    # initialise the drawing context with
+    # the image object as background
+    draw = ImageDraw.Draw(image)
+
+    # create font object with the font file and specify
+    # desired size
+    # font = ImageFont.truetype('fonts/Roboto-Italic.ttf', size=17)
+
+    color = 'rgb(0, 0, 0)'  # black color
+
+    # Partiname
+    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 40)
+    source = f'{riksdagen.parti_namn[parti]}'
+    text_w, text_h = draw.textsize(source, font)
+    draw.text(((w - text_w) / 2, 50), source, color, font=font)
+
+    font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 20)
+
+    # Fotnötter
+    source = "Källa: Sveriges riksdag"
+    text_w, text_h = draw.textsize(source, font)
+    draw.text(((w - text_w)-10, (h - text_h * 2)), source, color, font=font)
+
+    source = "Bearbetning: reicher@github"
+    text_w, text_h = draw.textsize(source, font)
+    draw.text(((w - text_w)-10, (h - text_h)), source, color, font=font)
+
+    # save the edited image
+    image.save(f'pics/draft/processed/{filename}')
 
 
 def get_party_words(api, parti: riksdagen.Parti, size: int):
