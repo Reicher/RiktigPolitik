@@ -95,15 +95,20 @@ def add_text_information(parti: riksdagen.Parti,
 
 def get_party_words(api, parti: riksdagen.Parti, size: int):
 
-    anforande_lista = api.get_anforande(parti=parti.name, anftyp='Nej', antal=size)
+    rms = riksdagen.riksmoten
+
+    anforande_lista = []
+    for rm in rms:
+        anforande_lista += api.get_anforande(rm=rm, parti=parti.name, anftyp='Nej', antal=size)
     print(f'Anföranden {parti.name}: {len(anforande_lista)}')
 
-    word_sum = ""
+    word_sum = ''
     for anförande in anforande_lista:
         if anförande.avsnittsrubrik is not None:
             clean = re.sub("[!#?.,()/]", "", anförande.avsnittsrubrik)
             word_sum += clean + ' '  # full uncleaned string
 
+    print(f'Ord {parti.name}: {len(word_sum.split(" "))}')
     return word_sum, len(anforande_lista)
 
 def prepare(api, size):
@@ -116,7 +121,7 @@ def prepare(api, size):
         for word in words:
             if word in usage[p]:
                 usage[p][word] += 1
-            else:
+            elif word != '':
                 usage[p][word] = 1
 
         for k, v in usage[p].items():
@@ -143,15 +148,6 @@ def print_party_common_words (relative_usage, length):
     for position in range(length):
         print(f'{position+1}. {sort[position]}, {relative_usage[sort[position]]:.0f} % mer än snittet')
 
-def test_data():
-    text = ''
-    for i in range(300):
-        for j in range(random.randint(2, 9)):
-            text += random.choice(["a", "b", "c", "d", "e", "f"])
-        text += ' '
-    return text
-
-
 def create_fake_text(relative_usage: Dict[str, float], length):
     sort = sorted(relative_usage, key=relative_usage.get, reverse=True)
     big_string = ''
@@ -163,13 +159,16 @@ def create_fake_text(relative_usage: Dict[str, float], length):
     return big_string
 
 
+logging.basicConfig(filename='logs/last.log')
 api = riksdagen.API()
-relative_usage, num_anforande = prepare(api, 10000)
+#usage: Dict[riksdagen.Parti, Dict[str, float]] = {}
+#text, num_a = get_party_words(api, 200)
+relative_usage, num_anforande = prepare(api, 10)
 
 # parti = riksdagen.Parti.M
 # print_party_common_words(relative_usage[parti], 15)
 
-for parti in riksdagen.Parti: #[riksdagen.Parti.V]:
+for parti in [riksdagen.Parti.V]: # riksdagen.Parti: #
     clouds = 3
     logging.info(f'Creating {clouds} clouds for {parti}.')
     full_text = create_fake_text(relative_usage[parti], 75)
