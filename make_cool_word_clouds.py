@@ -30,7 +30,7 @@ def do_cloud(id: int, text: str, parti: riksdagen.Parti, debug=True):
     for i in range(len(mask)):
         transformed_mask[i] = list(map(transform_format, mask[i]))
 
-    wordcloud = WordCloud(max_font_size=30, background_color="white", mask=transformed_mask).generate(text)
+    wordcloud = WordCloud(max_font_size=40, min_font_size=3, background_color="white", mask=transformed_mask).generate(text)
 
     if debug:
         plt.figure()
@@ -69,16 +69,16 @@ def add_text_information(parti: riksdagen.Parti, filename: str):
     text_w, text_h = draw.textsize(source, font)
     draw.text(((w - text_w) / 2, 50), source, color, font=font)
 
-    font = ImageFont.truetype("fonts/Roboto-Italic.ttf", 20)
+    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 17)
 
     # Fotnötter
     source = "Källa: Sveriges riksdag"
     text_w, text_h = draw.textsize(source, font)
-    draw.text(((w - text_w)-10, (h - text_h * 2)), source, color, font=font)
+    draw.text(((w - text_w)-10, (h - text_h * 2)-5), source, color, font=font)
 
     source = "Bearbetning: reicher@github"
     text_w, text_h = draw.textsize(source, font)
-    draw.text(((w - text_w)-10, (h - text_h)), source, color, font=font)
+    draw.text(((w - text_w)-10, (h - text_h)-5), source, color, font=font)
 
     # save the edited image
     image.save(f'pics/draft/processed/{filename}')
@@ -91,8 +91,9 @@ def get_party_words(api, parti: riksdagen.Parti, size: int):
 
     word_sum = ""
     for anförande in anforande_lista:
-        clean = re.sub("[!#?.,()/]", "", anförande.avsnittsrubrik)
-        word_sum += clean + ' '  # full uncleaned string
+        if anförande.avsnittsrubrik is not None:
+            clean = re.sub("[!#?.,()/]", "", anförande.avsnittsrubrik)
+            word_sum += clean + ' '  # full uncleaned string
 
     return word_sum
 
@@ -154,13 +155,13 @@ def create_fake_text(relative_usage: Dict[str, float], length):
 
 
 api = riksdagen.API()
-relative_usage = prepare(api, 50)
+relative_usage = prepare(api, 10000)
 
 # parti = riksdagen.Parti.M
 # print_party_common_words(relative_usage[parti], 15)
 
-for parti in [riksdagen.Parti.V]: # riksdagen.Parti:
-    clouds = 1
+for parti in riksdagen.Parti:# [riksdagen.Parti.V]:
+    clouds = 2
     logging.info(f'Creating {clouds} clouds for {parti}.')
     full_text = create_fake_text(relative_usage[parti], 70)
     print_party_common_words(relative_usage[parti], 10)
