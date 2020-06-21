@@ -67,14 +67,14 @@ def add_text_information(parti: riksdagen.Parti,
     color = 'rgb(0, 0, 0)'  # black color
 
     # Partiname
-    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 40)
+    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 45)
     source = f'{riksdagen.parti_namn[parti]}'
     text_w, text_h = draw.textsize(source, font)
-    draw.text(((w - text_w) / 2, 50), source, color, font=font)
+    draw.text(((w - text_w) / 2, 65), source, color, font=font)
 
     # Förklaring
-    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 19)
-    source = f'Sammanställning av {word_count} ord från {speeches} anföranden av {parti.name} sedan riksmötet 1993/94\n' \
+    font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 17)
+    source = f'Sammanställning av {speeches} anförande-rubriker av {parti.name} sedan riksmötet 1993/94\n' \
              f'De 75 ord {parti.name} använder betydligt mer än övriga partier.'
     text_w, text_h = draw.textsize(source, font)
     draw.text(((w - text_w) / 2, (h-text_h)-30), source, color, font=font, align='center')
@@ -169,7 +169,7 @@ relative_usage, num_anforande = prepare(api, 10000)
 # parti = riksdagen.Parti.M
 # print_party_common_words(relative_usage[parti], 15)
 
-for parti in [riksdagen.Parti.V]:
+for parti in riksdagen.Parti: #[riksdagen.Parti.V]:
     clouds = 3
     logging.info(f'Creating {clouds} clouds for {parti}.')
     full_text = create_fake_text(relative_usage[parti], 75)
