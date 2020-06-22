@@ -20,7 +20,7 @@ def transform_format(val):
         return val
 
 
-def do_cloud(id: int, text: str, parti: riksdagen.Parti):
+def do_cloud(id: int, frequencies: Dict[str, float], parti: riksdagen.Parti):
 
     mask_filename = f'{parti.name}.png'
     mask = np.array(Image.open(f'mask/{mask_filename}'))
@@ -31,10 +31,9 @@ def do_cloud(id: int, text: str, parti: riksdagen.Parti):
         transformed_mask[i] = list(map(transform_format, mask[i]))
 
     wordcloud = WordCloud(max_font_size=40,
-                          min_font_size=3,
-                          collocations=False,
+                          min_font_size=9,
                           background_color="white",
-                          mask=transformed_mask).generate(text)
+                          mask=transformed_mask).generate_from_frequencies(frequencies)
     filename = f'{parti.name}_wordcloud_{id}.png'
     wordcloud.to_file(f'pics/draft/{filename}')
     logging.info(f'Saved file {filename}')
@@ -68,7 +67,7 @@ def add_text_information(parti: riksdagen.Parti,
     # Förklaring
     font = ImageFont.truetype("fonts/Roboto-LightItalic.ttf", 17)
     source = f'Sammanställning av {statistics["ord"]} ord från {statistics["anföranden"]} anförande-rubriker av ' \
-             f'{parti.name} sedan riksmötet 1993/94.\nDe 75 ord {parti.name} använder betydligt mer än övriga partier.'
+             f'{parti.name} sedan riksmötet 1993/94.\n'
     text_w, text_h = draw.textsize(source, font)
     draw.text(((w - text_w) / 2, (h-text_h)-30), source, color, font=font, align='center')
 
@@ -94,14 +93,14 @@ def get_party_words(api, size: int):
     for parti in riksdagen.Parti:
         stats[parti] = {}
         anforande_lista = []
-        for rm in [riksdagen.riksmoten[20]]:
+        for rm in riksdagen.riksmoten:
             anforande_lista += api.get_anforande(rm=rm, parti=parti.name, anftyp='Nej', antal=size)
         stats[parti]['anföranden'] = len(anforande_lista)
 
         text[parti] = ''
         for anforande in anforande_lista:
             if anforande.avsnittsrubrik is not None:
-                clean = re.sub("[!#?.,()/]", "", anforande.avsnittsrubrik)
+                clean = re.sub("[!#?.,()/:-]", "", anforande.avsnittsrubrik)
                 text[parti] += clean + ' '  # full uncleaned string
 
         stats[parti]['ord'] = len(text[parti].split(" "))
@@ -117,10 +116,11 @@ def prepare(text):
         words = [w.lower() for w in text[p].split(' ')]
         usage[p] = {}
         for word in words:
-            if word in usage[p]:
-                usage[p][word] += 1
-            elif word != '':
-                usage[p][word] = 1
+            if any(c.isalpha() for c in word):
+                if word in usage[p]:
+                    usage[p][word] += 1
+                elif word != '':
+                    usage[p][word] = 1
 
         for k, v in usage[p].items():
             usage[p][k] = 100 * (v / len(words))
@@ -142,34 +142,22 @@ def prepare(text):
     return rel_usage
 
 
-def print_party_common_words (relative_usage, length):
-    sort = sorted(relative_usage, key=relative_usage.get, reverse=True)
+def print_party_common_words (relative_usage, parti, length):
+    sort = sorted(relative_usage[parti], key=relative_usage[parti].get, reverse=True)
+    print(f'{riksdagen.parti_namn[parti]} mest överanvända ord:')
     for position in range(length):
-        print(f'{position+1}. {sort[position]}, {relative_usage[sort[position]]:.0f} % mer än snittet')
-
-
-def create_fake_text(relative_usage: Dict[str, float], length):
-    sort = sorted(relative_usage, key=relative_usage.get, reverse=True)
-    big_string = ''
-    for position in range(length):  # best to worst
-        copies = int(relative_usage[sort[position]] * 2)
-        for cp in range(copies):
-            big_string += sort[position] + ' '
-
-    return big_string
-
+        print(f'{position+1}. {sort[position]}, {relative_usage[parti][sort[position]]:.0f} % mer än snittet')
 
 api = riksdagen.API()
 
-text, statistics = get_party_words(api, 2000)
+text, statistics = get_party_words(api, 10000)
 relative_usage = prepare(text)
 
-for parti in [riksdagen.Parti.V]: # riksdagen.Parti: #
+for parti in riksdagen.Parti:
     clouds = 1
     logging.info(f'Creating {clouds} clouds for {parti}.')
-    full_text = create_fake_text(relative_usage[parti], 60)
-    #print_party_common_words(relative_usage[parti], 10)
+    print_party_common_words(relative_usage, parti, 10)
     for i in range(clouds):
-        filename = do_cloud(i, full_text, parti)
+        filename = do_cloud(i, relative_usage[parti], parti)
         add_text_information(parti, filename, statistics[parti])
         print(f'Created wordcloud {filename} for {riksdagen.parti_namn[parti]}')
