@@ -154,10 +154,11 @@ text, statistics = get_party_words(api, 10000)
 relative_usage = prepare(text)
 
 for parti in riksdagen.Parti:
-    clouds = 1
+    clouds = 3
     logging.info(f'Creating {clouds} clouds for {parti}.')
     print_party_common_words(relative_usage, parti, 10)
     for i in range(clouds):
-        filename = do_cloud(i, relative_usage[parti], parti)
-        add_text_information(parti, filename, statistics[parti])
-        print(f'Created wordcloud {filename} for {riksdagen.parti_namn[parti]}')
+        if parti is riksdagen.Parti.NYD:
+            filename = do_cloud(i, relative_usage[parti], parti)
+            add_text_information(parti, filename, statistics[parti])
+            print(f'Created wordcloud {filename} for {riksdagen.parti_namn[parti]}')
